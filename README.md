@@ -7,10 +7,12 @@ This is a quick hack that produces [dot][] output from a Heat stack.
     usage: dotstack.py [-h] [--os-username OS_USERNAME]
                        [--os-password OS_PASSWORD]
                        [--os-tenant-name OS_TENANT_NAME]
-                       [--os-tenant-id OS_TENANT_ID]
+                       [--os-project-name OS_PROJECT_NAME]
+                       [--os-user-domain-name OS_USER_DOMAIN_NAME]
+                       [--os-project-domain-name OS_PROJECT_DOMAIN_NAME]
                        [--os-region-name OS_REGION_NAME]
                        [--os-auth-url OS_AUTH_URL] [--verbose | --debug]
-                       [--colors] [--detailed] [--recursive]
+                       [--colors] [--detailed] [--kelly] [--recursive]
                        stack
 
     positional arguments:
@@ -26,13 +28,16 @@ This is a quick hack that produces [dot][] output from a Heat stack.
       --os-username OS_USERNAME
       --os-password OS_PASSWORD
       --os-tenant-name OS_TENANT_NAME
-      --os-tenant-id OS_TENANT_ID
+      --os-project-name OS_PROJECT_NAME
+      --os-user-domain-name OS_USER_DOMAIN_NAME
+      --os-project-domain-name OS_PROJECT_DOMAIN_NAME
       --os-region-name OS_REGION_NAME
       --os-auth-url OS_AUTH_URL
 
     Output options:
       --colors, -C          colorize graph nodes
       --detailed, -D        produce detailed nodes in graph
+      --kelly, -K           Use Kenneth Kelly's high contrast color palette
 
 ## Example
 

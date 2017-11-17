@@ -26,9 +26,13 @@ import sys
 
 from itertools import cycle
 
-from keystoneclient.v2_0.client import Client as KEYSTONE
-from heatclient.client import Client as HEAT
+from keystoneauth1.identity import generic
+from keystoneauth1 import session
+from keystoneclient.v3 import client
+
+from heatclient.v1 import client as heat_v1
 from heatclient.exc import *
+
 
 LOG = logging.getLogger('dotstack')
 
@@ -71,11 +75,17 @@ def get_keystone_client(args):
     '''
 
     LOG.info('authenticating to keystone server')
-    return KEYSTONE(username=args.os_username,
-                    password=args.os_password,
-                    tenant_name=args.os_tenant_name,
-                    tenant_id=args.os_tenant_id,
-                    auth_url=args.os_auth_url)
+    auth = generic.Password(auth_url=args.os_auth_url,
+                            username=args.os_username,
+                            password=args.os_password,
+                            project_name=args.os_project_name,
+                            tenant_name=args.os_tenant_name,
+                            region_name=args.os_region_name,
+                            user_domain_name=args.os_user_domain_name,
+                            project_domain_name=args.os_project_domain_name)
+    sess = session.Session(auth=auth)
+    keystone = client.Client(session=sess)
+    return keystone
 
 
 def get_heat_client(ks):
@@ -83,15 +93,12 @@ def get_heat_client(ks):
     URLs for all services.'''
 
     LOG.info('looking for orchestration service in service catalog')
-    endpoints = ks.service_catalog.get_endpoints(service_type='orchestration',
-                                                 endpoint_type='public')
-    if 'orchestration' not in endpoints:
+    services = ks.services.list(service_type='orchestration')
+    if not services:
         LOG.error('no orchestration endpoint in service catalog')
         sys.exit(1)
 
-    endpoint_url = endpoints['orchestration'][0]['publicURL']
-    LOG.info('found orchestration endpoint = %s', endpoint_url)
-    return HEAT('1', endpoint=endpoint_url, token=ks.auth_token)
+    return heat_v1.Client(session=ks.session)
 
 
 def parse_args():
@@ -105,8 +112,12 @@ def parse_args():
                        default=os.environ.get('OS_PASSWORD'))
     authg.add_argument('--os-tenant-name',
                        default=os.environ.get('OS_TENANT_NAME'))
-    authg.add_argument('--os-tenant-id',
-                       default=os.environ.get('OS_TENANT_ID'))
+    authg.add_argument('--os-project-name',
+                       default=os.environ.get('OS_PROJECT_NAME'))
+    authg.add_argument('--os-user-domain-name',
+                       default=os.environ.get('OS_USER_DOMAIN_NAME'))
+    authg.add_argument('--os-project-domain-name',
+                       default=os.environ.get('OS_PROJECT_DOMAIN_NAME'))
     authg.add_argument('--os-region-name',
                        default=os.environ.get('OS_REGION_NAME'))
     authg.add_argument('--os-auth-url',
